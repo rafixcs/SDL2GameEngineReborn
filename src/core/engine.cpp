@@ -1,7 +1,12 @@
 #include "engine.hpp"
 #include <SDL2/SDL.h>
-
 #include <iostream>
+#include "../entities/entity_manager.hpp"
+#include "../entities/entity.hpp"
+#include "../components/transform_component.hpp"
+#include "../configs/constants.h"
+
+std::shared_ptr<Engine::RebornEngine> Engine::RebornEngine::sInstance = Engine::RebornEngine::CreateOrGetInstance();
 
 Engine::RebornEngine::RebornEngine()
 {
@@ -17,7 +22,7 @@ Engine::RebornEngine::RebornEngine()
 
 auto Engine::RebornEngine::initialize() -> int
 {
-    std::cout << "Initializng modules...\n";
+    std::cout << "Initializing modules...\n";
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
@@ -26,13 +31,12 @@ auto Engine::RebornEngine::initialize() -> int
     }
 
     this->window = SDL_CreateWindow(
-        "tmp title",
+        TITLE.c_str(),
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        460,
-        340,
-        SDL_WINDOW_SHOWN
-    );
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        SDL_WINDOW_SHOWN);
 
     if (this->window == nullptr)
     {
@@ -50,18 +54,37 @@ auto Engine::RebornEngine::initialize() -> int
         return -1;
     }
 
+    this->entitiesManager = std::shared_ptr<Entities::EntityManager>(new Entities::EntityManager());
+
     return 0;
 }
 
-auto Engine::RebornEngine::Build() -> std::shared_ptr<RebornEngine>
+auto Engine::RebornEngine::load() -> void
 {
-    std::cout << "test\n";
-    return std::shared_ptr<Engine::RebornEngine>(new Engine::RebornEngine());
+    Entities::Entity* entity = new Entities::Entity(this->entitiesManager.get(), "test");
+    entity->AddComponent<Components::TransformComponent>(300, 250, 200, 100);
+    this->entitiesManager->AddEntity("test", entity);
+
+    Entities::Entity* entity2 = new Entities::Entity(this->entitiesManager.get(), "test");
+    entity2->AddComponent<Components::TransformComponent>(0, 0, 100, 100);
+    this->entitiesManager->AddEntity("test", entity2);
+
+    this->entitiesManager->InitializeEntities();
+}
+
+auto Engine::RebornEngine::CreateOrGetInstance() -> std::shared_ptr<RebornEngine>
+{
+    if (Engine::RebornEngine::sInstance == nullptr)
+    {
+        Engine::RebornEngine::sInstance = std::shared_ptr<Engine::RebornEngine>(new Engine::RebornEngine());
+    }
+    return Engine::RebornEngine::sInstance;
 }
 
 auto Engine::RebornEngine::Run() -> void
 {
-    
+    this->load();
+
     bool quit = false;
     SDL_Event e;
 
@@ -72,13 +95,12 @@ auto Engine::RebornEngine::Run() -> void
         {
             quit = true;
         }
-
+        
         SDL_SetRenderDrawColor(this->render, 0, 100, 200, 255);
         SDL_RenderClear(this->render);
 
-        SDL_Rect myRect = { 300, 250, 200, 100};
-        SDL_SetRenderDrawColor(this->render, 255, 0, 0, 255);
-        SDL_RenderFillRect(this->render, &myRect);
+        entitiesManager->UpdateEntities(0.0f);
+        entitiesManager->RenderEntities();
 
         SDL_RenderPresent(this->render);
     }
@@ -86,5 +108,14 @@ auto Engine::RebornEngine::Run() -> void
     SDL_DestroyRenderer(this->render);
     SDL_DestroyWindow(this->window);
     SDL_Quit();
+}
 
+auto Engine::RebornEngine::GetRender() -> SDL_Renderer *
+{
+    return this->render;
+}
+
+auto Engine::RebornEngine::GetWindow() -> SDL_Window *
+{
+    return this->window;
 }
