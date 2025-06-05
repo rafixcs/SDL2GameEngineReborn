@@ -12,7 +12,7 @@ namespace Components
     class Component
     {
         public:
-            Entities::Entity *owner;
+            Entities::Entity *owner{};
             Component() {};
             virtual void Initialize() = 0;
             virtual void Update(float dt) = 0;

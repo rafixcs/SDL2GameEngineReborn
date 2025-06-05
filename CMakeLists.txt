@@ -10,7 +10,8 @@ add_executable(${PROJECT_NAME}
         src/components/transform_component.cpp
         src/entities/entity.cpp
         src/entities/entity_manager.cpp
-        src/configs/constants.h
+        src/components/control_component.cpp
+        src/components/control_component.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})

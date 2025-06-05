@@ -3,7 +3,8 @@
 
 #include <string>
 #include <vector>
-
+#include <map>
+#include <boost/type_index.hpp>
 #include "entity_manager.hpp"
 #include "../components/component.hpp"
 
@@ -19,17 +20,13 @@ namespace Entities
     {
     public:
         Entity(EntityManager *manager, const std::string &name);
-        
-        /// @brief Initialize all components
-        /// @return void
+
         auto Initialize() -> void;
-
-
-        /// @brief Update all components
-        /// @param dt delta time
-        /// @return void
         auto Update(const float &dt) -> void;
         auto Render() -> void;
+
+        template<typename T>
+        auto GetComponent() -> T*;
 
         template <typename T, typename... TArgs>
         auto AddComponent(TArgs &&...args) -> T &;
@@ -39,6 +36,7 @@ namespace Entities
         std::string name;
 
         std::vector<Components::Component *> componentsList;
+        std::map<const std::type_info *, Components::Component *> componentsLookup;
     };
 
     template <typename T, typename... TArgs>
@@ -48,10 +46,17 @@ namespace Entities
         newComponent->owner = this;
 
         this->componentsList.emplace_back(newComponent);
+        this->componentsLookup[&typeid(*newComponent)] = newComponent;
 
         newComponent->Initialize();
 
         return *newComponent;
+    }
+
+    template<typename T>
+    inline auto Entity::GetComponent() -> T*
+    {
+        return static_cast<T*>(this->componentsLookup[&typeid(T)]);
     }
 }
 

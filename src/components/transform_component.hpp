@@ -10,12 +10,12 @@ namespace Components
     class TransformComponent : public Component {
         public:
             TransformComponent(const int& x, const int& y, const int& w, const int& h);
-            virtual void Initialize();
-            virtual void Update(float dt);
-            virtual void Render();
+            void Initialize() override;
+            void Update(float dt) override;
+            void Render() override;
 
-        private:
             SDL_Rect rect{};
+        private:
             std::shared_ptr<Engine::RebornEngine> engine;
             SDL_Renderer* render{};
     };

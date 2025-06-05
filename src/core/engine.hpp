@@ -20,12 +20,18 @@ namespace Engine
             auto Run() -> void;
             auto GetRender() -> SDL_Renderer*;
             auto GetWindow() -> SDL_Window*;
+            auto GetEvent() -> SDL_Event*;
 
         private:
             SDL_Window* window;
             SDL_Renderer* render;
+            SDL_Event* event;
 
             std::shared_ptr<Entities::EntityManager> entitiesManager;
+
+            uint32_t ticksLastFrame;
+
+            std::map<SDL_Keycode, bool> lookupKbKeysPressed;
     };
 
 }
